@@ -134,6 +134,9 @@ namespace DivinityModManager.ViewModels
 		[MenuSettings("Tools", "Download & Extract the Script Extender...", Style = "MenuItemHightlightBlink")]
 		public Hotkey DownloadScriptExtender { get; private set; } = new Hotkey(Key.T, ModifierKeys.Control | ModifierKeys.Shift | ModifierKeys.Alt);
 
+		[MenuSettings("Tools", "Patch UI Files")]
+		public Hotkey PatchXamlFiles { get; private set; } = new Hotkey();
+
 		[MenuSettings("Tools", "Speak Active Order")]
 		public Hotkey SpeakActiveModOrder { get; private set; } = new Hotkey(Key.Home, ModifierKeys.Control);
 

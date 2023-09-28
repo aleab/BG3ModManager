@@ -199,6 +199,9 @@ namespace DivinityModManager.Models
 		private readonly ObservableAsPropertyHelper<string> _osirisStatusToolTipText;
 		public string OsirisStatusToolTipText => _osirisStatusToolTipText.Value;
 
+		private readonly ObservableAsPropertyHelper<string> _xmlPatcherStatusToolTipText;
+		public string XmlPatcherStatusToolTipText => _xmlPatcherStatusToolTipText.Value;
+
 		private readonly ObservableAsPropertyHelper<string> _lastModifiedDateText;
 		public string LastModifiedDateText => _lastModifiedDateText.Value;
 
@@ -219,6 +222,9 @@ namespace DivinityModManager.Models
 
 		private readonly ObservableAsPropertyHelper<Visibility> _osirisStatusVisibility;
 		public Visibility OsirisStatusVisibility => _osirisStatusVisibility.Value;
+
+		private readonly ObservableAsPropertyHelper<Visibility> _xmlPatcherStatusVisibility;
+		public Visibility XmlPatcherStatusVisibility => _xmlPatcherStatusVisibility.Value;
 
 		#region NexusMods Properties
 
@@ -251,6 +257,7 @@ namespace DivinityModManager.Models
 		[Reactive] public string ListColor { get; set; }
 
 		public HashSet<string> Files { get; set; }
+		[Reactive] public IReadOnlyCollection<string> XmlPatcherFiles { get; set; }
 
 		[Reactive] public DivinityModWorkshopData WorkshopData { get; set; }
 		[Reactive] public NexusModsModData NexusModsData { get; set; }
@@ -383,6 +390,11 @@ namespace DivinityModManager.Models
 			return String.Join("\n", lines);
 		}
 
+		private string XmlPatcherStatusTooltipText(IReadOnlyCollection<string> files)
+		{
+			return (files?.Count ?? 0) > 0 ? "Contains UI patches" : "";
+		}
+
 		public DivinityModData(bool isBaseGameMod = false) : base()
 		{
 			Targets = "";
@@ -504,6 +516,10 @@ namespace DivinityModManager.Models
 				.Select(x => $"Last Modified on {x.Value.ToString(DivinityApp.DateTimeColumnFormat, CultureInfo.InstalledUICulture)}")
 				.StartWith("")
 				.ToProperty(this, nameof(LastModifiedDateText), scheduler:RxApp.MainThreadScheduler);
+
+			_xmlPatcherStatusVisibility = this.WhenAnyValue(x => x.XmlPatcherFiles)
+			   .Select(x => (x?.Count ?? 0) > 0 ? Visibility.Visible : Visibility.Collapsed).StartWith(Visibility.Collapsed).ToProperty(this, nameof(XmlPatcherStatusVisibility), scheduler: RxApp.MainThreadScheduler);
+			_xmlPatcherStatusToolTipText = this.WhenAnyValue(x => x.XmlPatcherFiles).Select(XmlPatcherStatusTooltipText).ToProperty(this, nameof(XmlPatcherStatusToolTipText), scheduler: RxApp.MainThreadScheduler);
 		}
 	}
 }

@@ -77,6 +77,7 @@
 	<BitmapImage x:Key="DeleteModImage" UriSource="pack://application:,,,/Resources/Icons/DeleteAzureResource_16x.png" />
 	<BitmapImage x:Key="OsirisImage" UriSource="pack://application:,,,/Resources/Icons/Osiris_16x.png" />
 	<BitmapImage x:Key="OsirisModFixerImage" UriSource="pack://application:,,,/Resources/Icons/Osiris_ModFixer_16x.png" />
+	<BitmapImage x:Key="XmlPatcherImage" UriSource="pack://application:,,,/Resources/Icons/XmlPatcher_32x.png" />
 	<!--  Overrides the default context menu open animation to remove flickering.  -->
 	<PopupAnimation x:Key="{x:Static SystemParameters.MenuPopupAnimationKey}">None</PopupAnimation>
 	<Style
@@ -1028,6 +1029,21 @@
 				Padding="0,0,4,0"
 				BorderThickness="0">
 				<StackPanel Orientation="Horizontal">
+					<Image
+						x:Name="XmlPatcherStatusImage"
+						Width="16"
+						Height="16"
+						MaxWidth="16"
+						MaxHeight="16"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						DataContext="{Binding}"
+						RenderOptions.BitmapScalingMode="HighQuality"
+						Stretch="UniformToFill"
+						ToolTip="{Binding XmlPatcherStatusToolTipText}"
+						Visibility="{Binding XmlPatcherStatusVisibility}"
+						Source="{StaticResource XmlPatcherImage}">
+					</Image>
 					<Image
 						x:Name="OsirisStatusImage"
 						Width="16"

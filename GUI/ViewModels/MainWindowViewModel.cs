@@ -451,6 +451,9 @@ namespace DivinityModManager.ViewModels
 
 		#endregion
 
+		private readonly ObservableAsPropertyHelper<Visibility> _xamlPatcherButtonVisibility;
+		public Visibility XamlPatcherButtonVisibility => this._xamlPatcherButtonVisibility.Value;
+
 		public bool DebugMode { get; set; }
 
 		private void DownloadScriptExtender(string exeDir)
@@ -4920,6 +4923,14 @@ Directory the zip will be extracted to:
 				}
 			});
 
+			var canPatchXamlFiles = _activeMods.ToObservableChangeSet().SkipWhile(x => x.TotalChanges == x.Moves).ToCollection().Select(x => x.Any(m => m.XmlPatcherFiles.Count > 0));
+			Keys.PatchXamlFiles.AddAction(() =>
+			{
+				var result = XamlPatcher.Patch(_activeMods.Where(m => m.XmlPatcherFiles.Count > 0));
+				// TODO: package MergeMod
+				// TODO: ShowAlert with errors
+			}, canPatchXamlFiles);
+
 			#endregion
 
 			DeleteOrderCommand = ReactiveCommand.Create<DivinityLoadOrder, Unit>(DeleteOrder, canOpenDialogWindow);
@@ -5251,6 +5262,9 @@ Directory the zip will be extracted to:
 				}
 			});
 			#endregion
+
+			this._xamlPatcherButtonVisibility = canPatchXamlFiles.Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+			   .StartWith(Visibility.Collapsed).ToProperty(this, nameof(this.XamlPatcherButtonVisibility), true, RxApp.MainThreadScheduler);
 
 			_isDeletingFiles = this.WhenAnyValue(x => x.View.DeleteFilesView.ViewModel.IsVisible).ToProperty(this, nameof(IsDeletingFiles), true, RxApp.MainThreadScheduler);
 

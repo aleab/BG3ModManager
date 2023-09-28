@@ -372,6 +372,16 @@
 								ToolTip="Export Active Mods to Zip As...">
 								<controls:AutoGrayableImage Source="{StaticResource ZipFileAsImage}" />
 							</Button>
+							<StackPanel Orientation="Horizontal" Visibility="{Binding XamlPatcherButtonVisibility}">
+								<Rectangle />
+								<TextBlock Text="UI Patcher" />
+								<Button
+									x:Name="XmlPatcherButton"
+									Command="{Binding Keys.PatchXamlFiles.Command}"
+									ToolTip="Patch UI Files">
+									<controls:AutoGrayableImage Source="{StaticResource XmlPatcherImage}" />
+								</Button>
+							</StackPanel>
 							<!--<Rectangle />
 							<TextBlock
 								Padding="2,0,2,0"

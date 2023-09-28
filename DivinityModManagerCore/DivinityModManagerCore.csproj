@@ -34,6 +34,9 @@
         <Reference Include="LSLib">
             <HintPath>$(SolutionDir)External\lslib\LSLib.dll</HintPath>
         </Reference>
+        <Reference Include="Tizuby.XmlPatchLib">
+            <HintPath>$(SolutionDir)External\Tizuby.XmlPatchLib.dll</HintPath>
+        </Reference>
         <Reference Include="Microsoft.CSharp" />
         <Reference Include="Microsoft.VisualBasic" />
         <Reference Include="PresentationCore" />

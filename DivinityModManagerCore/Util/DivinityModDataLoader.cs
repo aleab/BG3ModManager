@@ -456,6 +456,7 @@ namespace DivinityModManager.Util
 				var builtinModOverrides = new Dictionary<string, DivinityModData>();
 				var files = new HashSet<string>();
 				var baseGameFiles = new HashSet<string>();
+				var xmlPatcherFiles = new HashSet<string>();
 
 				AbstractFileInfo extenderConfigPath = null;
 
@@ -536,6 +537,9 @@ namespace DivinityModManager.Util
 								else
 								{
 									hasModFolderData = true;
+
+									if (f.Name.StartsWith($"Mods/{modFolder}/XmlPatcher") && f.Name.EndsWith(".xml"))
+										xmlPatcherFiles.Add(f.Name);
 								}
 							}
 						}
@@ -615,6 +619,7 @@ namespace DivinityModManager.Util
 				{
 					modData.OsirisModStatus = hasOsirisScripts;
 					modData.Files = files;
+					modData.XmlPatcherFiles = xmlPatcherFiles;
 					if (isOverridingBuiltinDirectory)
 					{
 						if(baseGameFiles.Count < DivinityApp.MAX_FILE_OVERRIDE_DISPLAY)
