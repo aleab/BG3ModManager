@@ -4926,8 +4926,15 @@ Directory the zip will be extracted to:
 			var canPatchXamlFiles = _activeMods.ToObservableChangeSet().SkipWhile(x => x.TotalChanges == x.Moves).ToCollection().Select(x => x.Any(m => m.XmlPatcherFiles.Count > 0));
 			Keys.PatchXamlFiles.AddAction(() =>
 			{
-				var result = XamlPatcher.Patch(_activeMods.Where(m => m.XmlPatcherFiles.Count > 0));
-				// TODO: package MergeMod
+				var mods = new List<DivinityModData>(_activeMods.OrderBy(m => m.Index));
+				if (_forceLoadedMods != null)
+					mods.InsertRange(0, _forceLoadedMods);
+
+				var patcher = new XamlPatcher(Settings.GameDataPath);
+				var result = patcher.Patch(mods.Where(m => m.XmlPatcherFiles.Count > 0));
+
+				File.Move(result.MergeModFilePath, Path.Combine(PathwayData.AppDataModsPath, Path.GetFileName(result.MergeModFilePath)), MoveOptions.ReplaceExisting | MoveOptions.WriteThrough);
+				// TODO: Refresh
 				// TODO: ShowAlert with errors
 			}, canPatchXamlFiles);
 

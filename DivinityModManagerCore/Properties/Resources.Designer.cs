@@ -59,5 +59,15 @@ namespace DivinityModManager.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] XamlPatcher_MergeMod {
+            get {
+                object obj = ResourceManager.GetObject("XamlPatcher_MergeMod", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
