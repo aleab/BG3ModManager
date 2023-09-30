@@ -4935,8 +4935,11 @@ Directory the zip will be extracted to:
 
 				var mergeModDestination = Path.Combine(PathwayData.AppDataModsPath, Path.GetFileName(result.MergeModFilePath));
 				File.Move(result.MergeModFilePath, mergeModDestination, MoveOptions.ReplaceExisting | MoveOptions.WriteThrough | MoveOptions.CopyAllowed);
-				// TODO: Refresh
-				// TODO: ShowAlert with errors
+
+				RefreshCommand.Execute(Unit.Default).Subscribe(_ => {}, () =>
+				{
+					// TODO: Show errors
+				});
 			}, canPatchXamlFiles);
 
 			#endregion
