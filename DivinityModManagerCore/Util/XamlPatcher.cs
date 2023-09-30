@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
 using DivinityModManager.Models;
 using DivinityModManager.Models.XamlPatcher;
 using DivinityModManager.Properties;
+using DynamicData;
 using LSLib.LS;
 using LSLib.LS.Enums;
 using Tizuby.XmlPatchLib;
@@ -85,19 +89,7 @@ namespace DivinityModManager.Util
 				}
 
 				// Apply patches
-				var xamlDocument = XDocument.Load(mergeModXamlFilePath);
-				foreach (var (mod, packagedPatchFilePath, patchFilePath) in kvp.Value)
-				{
-					try
-					{
-						var patchDocument = XDocument.Load(patchFilePath);
-						xmlPatcherErrors.AddRange(patcher.PatchXml(xamlDocument, patchDocument));
-					}
-					catch (Exception e)
-					{
-						errors.Add(new XamlPatcherError(mod, packagedPatchFilePath, e.ToString()));
-					}
-				}
+				ApplyPatches(mergeModXamlFilePath, kvp.Value, xmlPatcherErrors, errors);
 			}
 
 			// Package MergeMod
@@ -146,7 +138,41 @@ namespace DivinityModManager.Util
 			return false;
 		}
 
-		private static void ExtractPatchFiles(DivinityModData mod, string dir, IDictionary<string, IList<(DivinityModData, string, string)>> patches, ICollection<XamlPatcherError> errors)
+		private void ApplyPatches(string xamlFilePath, IEnumerable<(DivinityModData, string, string)> patches, IList<XmlPatcherError> xE, ICollection<XamlPatcherError> E)
+		{
+			// Remove empty namespace declaration from the xaml document
+			var xaml = File.ReadAllText(xamlFilePath, Encoding.UTF8);
+			var ns = Regex.Match(xaml, @" xmlns=""([^""]+)""").Groups[1].Value;
+			if (!string.IsNullOrWhiteSpace(ns))
+				xaml = xaml.Replace($" xmlns=\"{ns}\"", "");
+
+			var xamlDocument = XDocument.Parse(xaml, LoadOptions.PreserveWhitespace);
+
+			foreach (var (mod, packagedPatchFilePath, patchFilePath) in patches)
+			{
+				try
+				{
+					var patchDocument = LoadPatchDocument(patchFilePath, xamlDocument);
+					var errors = patcher.PatchXml(xamlDocument, patchDocument);
+					xE.AddRange(errors);
+				}
+				catch (Exception ex)
+				{
+					E.Add(new XamlPatcherError(mod, packagedPatchFilePath, ex.ToString()));
+				}
+			}
+
+			// Re-add the empty namespace declaration
+			if (xamlDocument.Root != null && !string.IsNullOrWhiteSpace(ns) && xamlDocument.Root.Attribute("xmlns") == null)
+				xamlDocument.Root.SetAttributeValue("xmlns", ns);
+
+			using (var writer = new XmlTextWriter(xamlFilePath, Encoding.UTF8))
+			{
+				xamlDocument.WriteTo(writer);
+			}
+		}
+
+		private static void ExtractPatchFiles(DivinityModData mod, string dir, IDictionary<string, IList<(DivinityModData, string, string)>> patches, ICollection<XamlPatcherError> E)
 		{
 			var tmpModDir = Directory.CreateDirectory(Path.Combine(dir, mod.UUID));
 
@@ -181,12 +207,39 @@ namespace DivinityModManager.Util
 							patches.Add(xamlFilePath, new List<(DivinityModData, string, string)>());
 						patches[xamlFilePath].Add((mod, packagedPatchFilePath, patchFilePath));
 					}
-					catch (Exception e)
+					catch (Exception ex)
 					{
-						errors.Add(new XamlPatcherError(mod, packagedPatchFilePath, e.ToString()));
+						E.Add(new XamlPatcherError(mod, packagedPatchFilePath, ex.ToString()));
 					}
 				}
 			}
+		}
+
+		private static XDocument LoadPatchDocument(string patchFilePath, XDocument xamlDocument)
+		{
+			XDocument patchDocument = null;
+
+			try
+			{
+				patchDocument = XDocument.Load(patchFilePath);
+			}
+			catch
+			{
+				// If the patch fails to load, try to fix its namespace declarations by copying them from the xaml document
+				if (xamlDocument.Root != null)
+				{
+					var namespaces = xamlDocument.Root.Attributes()
+					   .Where(x => x.IsNamespaceDeclaration)
+					   .Select(x => $"xmlns:{x.Name.LocalName}=\"{x.Value}\"");
+
+					var xml = File.ReadAllText(patchFilePath, Encoding.UTF8);
+					xml = new Regex(@"^<diff ").Replace(xml, $"<diff {string.Join(" ", namespaces)} ", 1);
+
+					patchDocument = XDocument.Parse(xml);
+				}
+			}
+
+			return patchDocument;
 		}
 	}
 }
