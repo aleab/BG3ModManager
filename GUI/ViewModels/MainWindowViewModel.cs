@@ -4926,14 +4926,15 @@ Directory the zip will be extracted to:
 			var canPatchXamlFiles = _activeMods.ToObservableChangeSet().SkipWhile(x => x.TotalChanges == x.Moves).ToCollection().Select(x => x.Any(m => m.XmlPatcherFiles.Count > 0));
 			Keys.PatchXamlFiles.AddAction(() =>
 			{
-				var mods = new List<DivinityModData>(_activeMods.OrderBy(m => m.Index));
+				var activeMods = new List<DivinityModData>(_activeMods.OrderBy(m => m.Index));
 				if (_forceLoadedMods != null)
-					mods.InsertRange(0, _forceLoadedMods);
+					activeMods.InsertRange(0, _forceLoadedMods);
 
 				var patcher = new XamlPatcher(Settings.GameDataPath);
-				var result = patcher.Patch(mods.Where(m => m.XmlPatcherFiles.Count > 0));
+				var result = patcher.Patch(activeMods.Where(m => m.XmlPatcherFiles.Count > 0));
 
-				File.Move(result.MergeModFilePath, Path.Combine(PathwayData.AppDataModsPath, Path.GetFileName(result.MergeModFilePath)), MoveOptions.ReplaceExisting | MoveOptions.WriteThrough);
+				var mergeModDestination = Path.Combine(PathwayData.AppDataModsPath, Path.GetFileName(result.MergeModFilePath));
+				File.Move(result.MergeModFilePath, mergeModDestination, MoveOptions.ReplaceExisting | MoveOptions.WriteThrough | MoveOptions.CopyAllowed);
 				// TODO: Refresh
 				// TODO: ShowAlert with errors
 			}, canPatchXamlFiles);
